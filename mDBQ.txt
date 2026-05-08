@@ -1,0 +1,27 @@
+// Query 1: Create an index on the name field for faster search, then find a specific movie by name
+db.moviesColl.createIndex({ name: 1 })
+db.moviesColl.findOne({ name: "The Hunger Games" })
+
+// Query 2a: Find all Movies where genre exactly equals Drama OR exactly equals Documentary
+db.moviesColl.find({ type: "Movie", genre: { $in: ["Drama", "Documentary"] } })
+
+// Query 2b: Find all Movies where genre CONTAINS Drama OR Documentary (even within comma-separated lists)
+db.moviesColl.find({ type: "Movie", $or: [ { genre: { $regex: "Drama", $options: "i" } }, { genre: { $regex: "Documentary", $options: "i" } } ] })
+
+// Query 3a Part 1: Count number of Movies
+db.moviesColl.countDocuments({ type: "Movie" })
+
+// Query 3a Part 2: Count number of TV Shows
+db.moviesColl.countDocuments({ type: "TV Show" })
+
+// Query 3: Count how many titles exist for each type (Movie vs TV Show) and sort from highest to lowest
+db.moviesColl.aggregate([ { $group: { _id: "$type", count: { $sum: 1 } } }, { $sort: { count: -1 } } ])
+
+
+// Query 4a: Find top 5 highest-rated Movies released after 2010 on Prime Video or Netflix
+db.moviesColl.find({ type: "Movie", released_at: { $gt: "2010-01-01" }, streaming_on: { $in: [/Prime Video/i, /Netflix/i] }, imdb_rating: { $ne: "" } }).sort({ imdb_rating: -1 }).limit(5)
+
+// Query 4b: Top 5 highest-rated Movies after 2010 on Prime Video or Netflix
+db.moviesColl.find({type: "Movie", released_at: { $gt: "2010-01-01" }, streaming_on: { $in: [/Prime Video/i, /Netflix/i] }, imdb_rating: { $ne: "" }},
+{name: 1, released_at: 1, genre: 1, streaming_on: 1, country: 1,  imdb_rating: 1, _id: 0 } ).sort({ imdb_rating: -1 }).limit(5)
+ 
